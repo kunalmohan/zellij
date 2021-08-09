@@ -18,11 +18,11 @@ use zellij_utils::{
     structopt::StructOpt,
 };
 
-fn start_new_session_name(opts: &CliArgs) -> String {
-    let session_name = opts
-        .session
-        .clone()
-        .unwrap_or_else(|| names::Generator::default().next().unwrap());
+fn start_new_session_name(name: Option<&String>) -> String {
+    let session_name = name.map_or_else(
+        || names::Generator::default().next().unwrap(),
+        |s| s.clone(),
+    );
     assert_session_ne(&session_name);
     return session_name;
 }
@@ -114,8 +114,8 @@ pub fn main() {
                     process::exit(1);
                 }
             } else if sessions
-                    .iter()
-                    .any(|s| s.to_string() == session_name.as_deref().unwrap())
+                .iter()
+                .any(|s| s.to_string() == session_name.as_deref().unwrap())
             {
                 // If a session name was given, and it exists, attach to it
             } else if create {
@@ -139,7 +139,7 @@ pub fn main() {
                     Box::new(os_input),
                     opts.clone(),
                     config,
-                    ClientInfo::New(start_new_session_name(&opts)),
+                    ClientInfo::New(start_new_session_name(opts.session.as_ref())),
                     start_new_session_layout(&opts, &config_options),
                 );
             } else {
@@ -156,7 +156,7 @@ pub fn main() {
                 Box::new(os_input),
                 opts.clone(),
                 config,
-                ClientInfo::New(start_new_session_name(&opts)),
+                ClientInfo::New(start_new_session_name(opts.session.as_ref())),
                 start_new_session_layout(&opts, &config_options),
             );
         }
